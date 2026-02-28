@@ -86,14 +86,29 @@ static lua_State* Hook_lua_open() {
 }
 
 bool LuaHook_Init() {
+	char exePath[MAX_PATH];
+	GetModuleFileNameA(nullptr, exePath, MAX_PATH);
+
+	const LuaRVAs* rvas = nullptr;
+	if (strstr(exePath, "StarWarsI.exe"))
+		rvas = &RVAs_StarWarsI;
+	else if (strstr(exePath, "StarWarsG.exe"))
+		rvas = &RVAs_StarWarsG;
+	else
+		return false;
+
+	if (!rvas->lua_open || !rvas->lua_pushstring || !rvas->lua_pushcclosure ||
+		!rvas->lua_settable || !rvas->lua_tostring)
+		return false;
+
 	uintptr_t base = (uintptr_t)GetModuleHandleA(nullptr);
 
-	pfn_pushstring = (fn_lua_pushstring)(base + RVA_lua_pushstring);
-	pfn_pushcclosure = (fn_lua_pushcclosure)(base + RVA_lua_pushcclosure);
-	pfn_settable = (fn_lua_settable)(base + RVA_lua_settable);
-	pfn_tostring = (fn_lua_tostring)(base + RVA_lua_tostring);
+	pfn_pushstring = (fn_lua_pushstring)(base + rvas->lua_pushstring);
+	pfn_pushcclosure = (fn_lua_pushcclosure)(base + rvas->lua_pushcclosure);
+	pfn_settable = (fn_lua_settable)(base + rvas->lua_settable);
+	pfn_tostring = (fn_lua_tostring)(base + rvas->lua_tostring);
 
-	void* const target = (void*)(base + RVA_lua_open);
+	void* const target = (void*)(base + rvas->lua_open);
 
 	if (MH_Initialize() != MH_OK) {
 		return false;
