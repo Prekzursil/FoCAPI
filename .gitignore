@@ -1,3 +1,11 @@
+x64/
+powrprof/
+.vscode/
+.vs/
+
+*.vcxproj.filters
+*.vcxproj.user
+
 # Prerequisites
 *.d
 

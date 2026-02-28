@@ -1,0 +1,8 @@
+LIBRARY powrprof
+EXPORTS
+	CallNtPowerInformation
+	PowerReadACValueIndex
+	PowerReadDCValueIndex
+	PowerGetActiveScheme
+	PowerSettingRegisterNotification
+	PowerSettingUnregisterNotification
