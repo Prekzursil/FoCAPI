@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36127.28 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SWEAW Hooks", "SWEAW Hooks.vcxproj", "{F2C4477F-C9F1-4AF0-A04C-9D6ADD14E783}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FoCAPI", "FoCAPI.vcxproj", "{F2C4477F-C9F1-4AF0-A04C-9D6ADD14E783}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

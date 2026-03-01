@@ -4,7 +4,6 @@ powrprof/
 .vs/
 .claude/
 
-*.vcxproj.filters
 *.vcxproj.user
 
 # Prerequisites

@@ -1,60 +1,44 @@
 #pragma once
-#include <cstdint>
+#include "rvas.h"
 
-struct LuaRVAs {
-    uintptr_t lua_open;
-    uintptr_t lua_pushstring;
-    uintptr_t lua_pushcclosure;
-    uintptr_t lua_settable;
-    uintptr_t lua_tostring;
-    uintptr_t lua_tonumber;
-    uintptr_t get_player_by_index;     // PlayerListClass::Get_Player_By_Index
-    uintptr_t player_list;             // PlayerList global object (data, not a function)
-    uintptr_t player_wrapper_create;   // PlayerWrapper::Create (static)
-    uintptr_t get_script_from_state;   // LuaScriptClass::Get_Script_From_State (static)
-    uintptr_t map_var_to_lua;          // LuaScriptClass::Map_Var_To_Lua (member)
-    uintptr_t debug_print;             // Debug_Print(char*)
-    uintptr_t lua_newtable;            // lua_newtable(L)
-    uintptr_t lua_rawseti;             // lua_rawseti(L, idx, n)
-};
+struct lua_State;
+typedef int (*lua_CFunction)(lua_State*);
 
-// StarWarsI.exe -- debug kit, PDB available
-constexpr LuaRVAs RVAs_StarWarsI = {
-    0x12AB790, // lua_open
-    0x12AC930, // lua_pushstring
-    0x12AC6E0, // lua_pushcclosure
-    0x12AD020, // lua_settable
-    0x12AD430, // lua_tostring
-    0x12AD300, // lua_tonumber
-    0x06FA990, // PlayerListClass::Get_Player_By_Index
-    0x1913158, // PlayerList global object
-    0x0F12010, // PlayerWrapper::Create
-    0x0537BB0, // LuaScriptClass::Get_Script_From_State
-    0x0536FE0, // LuaScriptClass::Map_Var_To_Lua
-    0x0476AE0, // Debug_Print
-    0x12AC460, // lua_newtable
-    0x12ACD70, // lua_rawseti
-};
+// Function pointer types
+typedef lua_State*   (*fn_lua_open)();
+typedef void         (*fn_lua_pushstring)(lua_State*, const char*);
+typedef void         (*fn_lua_pushcclosure)(lua_State*, lua_CFunction, int);
+typedef void         (*fn_lua_settable)(lua_State*, int);
+typedef const char*  (*fn_lua_tostring)(lua_State*, int);
+typedef double       (*fn_lua_tonumber)(lua_State*, int);
+typedef void         (*fn_lua_newtable)(lua_State*);
+typedef void         (*fn_lua_rawseti)(lua_State*, int, int);
+typedef void*        (*fn_GetPlayerByIndex)(void*, int);          // PlayerListClass::Get_Player_By_Index
+typedef void*        (*fn_PlayerWrapperCreate)(void*, void*);     // PlayerWrapper::Create(PlayerClass*, LuaScriptClass*)
+typedef void*        (*fn_GetScriptFromState)(lua_State*);        // LuaScriptClass::Get_Script_From_State
+typedef void         (*fn_MapVarToLua)(lua_State*, void*);        // LuaScriptClass::Map_Var_To_Lua (static)
+typedef void         (*fn_DebugPrint)(const char*);               // Debug_Print
 
-// StarWarsG.exe -- client binary, no PDB
-constexpr LuaRVAs RVAs_StarWarsG = {
-    0x07b8930, // lua_open
-    0x07b9540, // lua_pushstring
-    0x07b9340, // lua_pushcclosure
-    0x07b9a60, // lua_settable
-    0x07b9cc0, // lua_tostring
-    0,         // lua_tonumber (TODO)
-    0,         // PlayerListClass::Get_Player_By_Index (TODO)
-    0,         // PlayerList global object (TODO)
-    0,         // PlayerWrapper::Create (TODO)
-    0,         // LuaScriptClass::Get_Script_From_State (TODO)
-    0,         // LuaScriptClass::Map_Var_To_Lua (TODO)
-    0,         // Debug_Print (TODO)
-    0,         // lua_newtable (TODO)
-    0,         // lua_rawseti (TODO)
-};
+// Resolved function pointers (defined in lua_hook.cpp)
+extern fn_lua_open            real_lua_open;
+extern fn_lua_pushstring      pfn_pushstring;
+extern fn_lua_pushcclosure    pfn_pushcclosure;
+extern fn_lua_settable        pfn_settable;
+extern fn_lua_tostring        pfn_tostring;
+extern fn_lua_tonumber        pfn_tonumber;
+extern fn_lua_newtable        pfn_newtable;
+extern fn_lua_rawseti         pfn_rawseti;
+extern fn_GetPlayerByIndex    pfn_get_player_by_index;
+extern void*                  g_player_list;
+extern fn_PlayerWrapperCreate pfn_player_wrapper_create;
+extern fn_GetScriptFromState  pfn_get_script_from_state;
+extern fn_MapVarToLua         pfn_map_var_to_lua;
+extern fn_DebugPrint          pfn_debug_print;
 
 constexpr int LUA_GLOBALSINDEX = -10001;
+
+// Equivalent of lua_setglobal — registers a C function in the Lua global table
+void register_global(lua_State* L, const char* name, lua_CFunction fn);
 
 bool LuaHook_Init();
 void LuaHook_Shutdown();
