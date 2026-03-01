@@ -14,6 +14,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDll, DWORD fdwReason, LPVOID lpvReserved) {
 		if (!LuaHook_Init()) {
 			OutputDebugStringA("[SWEAW Hooks] WARNING: LuaHook_Init() failed - Lua hooks are not active.\n");
 		}
+
 		break;
 
 	case DLL_PROCESS_DETACH:
