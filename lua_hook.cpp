@@ -1,13 +1,7 @@
 #include "lua_hook.h"
 #include "functions/functions.h"
-#include "minhook/include/MinHook.h"
+#include <MinHook.h>
 #include <windows.h>
-
-#if defined _M_X64
-#pragma comment(lib, "MinHook.x64.lib")
-#elif defined _M_IX86
-#pragma comment(lib, "MinHook.x86.lib")
-#endif
 
 // Resolved function pointers
 fn_lua_open            real_lua_open          = nullptr;
@@ -40,8 +34,6 @@ static lua_State* Hook_lua_open() {
 	}
 
 	Register_All(L);
-
-	if (pfn_debug_print) pfn_debug_print("[FoCAPI] Lua state initialized\n");
 
 	return L;
 }

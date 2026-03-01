@@ -3,6 +3,8 @@ powrprof/
 .vscode/
 .vs/
 .claude/
+minhook/
+packages/
 
 *.vcxproj.user
 
