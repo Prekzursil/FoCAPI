@@ -2,6 +2,7 @@ x64/
 powrprof/
 .vscode/
 .vs/
+.claude/
 
 *.vcxproj.filters
 *.vcxproj.user
