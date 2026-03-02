@@ -38,7 +38,7 @@ constexpr LuaRVAs RVAs_StarWarsI = {
     0x12ACD70, // lua_rawseti
 
     // --- Players ---
-    0x06FA990, // PlayerListClass::Get_Player_By_Index
+    0x000b0e1, // PlayerListClass::Get_Player_By_Index
     0x1913158, // PlayerList global object
     0x0F12010, // PlayerWrapper::Create
 
@@ -58,18 +58,18 @@ constexpr LuaRVAs RVAs_StarWarsG = {
     0x07b9340, // lua_pushcclosure
     0x07b9a60, // lua_settable
     0x07b9cc0, // lua_tostring
-    0,         // lua_tonumber (TODO)
-    0,         // lua_newtable (TODO)
-    0,         // lua_rawseti (TODO)
+    0x07b9bc0, // lua_tonumber
+    0x07b9140, // lua_newtable (TODO)
+    0x07b9820, // lua_rawseti (TODO)
 
     // --- Players ---
-    0,         // PlayerListClass::Get_Player_By_Index (TODO)
-    0,         // PlayerList global object (TODO)
-    0,         // PlayerWrapper::Create (TODO)
+    0x0294bc0, // PlayerListClass::Get_Player_By_Index (TODO)
+    0x0a16fd0, // PlayerList global object (TODO)
+    0x06019f0, // PlayerWrapper::Create (TODO)
 
     // --- Scripts ---
-    0,         // LuaScriptClass::Get_Script_From_State (TODO)
-    0,         // LuaScriptClass::Map_Var_To_Lua (TODO)
+    0x0245790, // LuaScriptClass::Get_Script_From_State (TODO)
+    0x0247700, // LuaScriptClass::Map_Var_To_Lua (TODO)
 
     // --- Debug ---
     0,         // Debug_Print (TODO)
