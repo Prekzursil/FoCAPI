@@ -5,7 +5,8 @@ A powrprof.dll hook which adds custom Lua functions to Forces of Corruption.
 ## Usage
 
 Drop powrprof.dll and MinHooks.x64.dll into the `/corruption/` folder of your Empire at War installation.
-Currently only works with the debug kit `StarWarsI.exe`; `StarWarsG.exe` support is coming soon.
+Works with both the debug kit `StarWarsI.exe` and client version `StarWarsG.exe` of the Steam version.
+Not supported on disc / GoG versions (sorry).
 
 ## Functions
 
