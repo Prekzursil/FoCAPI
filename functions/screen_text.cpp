@@ -41,7 +41,7 @@ static int L_Print_Screen_Text(lua_State* L)
     // Widen to wchar_t for the game's basic_string<wchar_t> parameter.
     int wlen = MultiByteToWideChar(CP_ACP, 0, text, -1, nullptr, 0);
     std::wstring wtext(wlen - 1, L'\0');
-    MultiByteToWideChar(CP_ACP, 0, text, -1, wtext.data(), wlen);
+    MultiByteToWideChar(CP_ACP, 0, text, -1, &wtext[0], wlen);
 
     // If the feed is full, evict the oldest entry.
     if (g_count >= MAX_LINES)
