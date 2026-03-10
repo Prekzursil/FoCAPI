@@ -69,23 +69,23 @@ constexpr LuaRVAs RVAs_StarWarsG = {
     0x07b9a60, // lua_settable
     0x07b9cc0, // lua_tostring
     0x07b9bc0, // lua_tonumber
-    0x07b9140, // lua_newtable (TODO)
-    0x07b9820, // lua_rawseti (TODO)
+    0x07b9140, // lua_newtable
+    0x07b9820, // lua_rawseti
 
     // --- Players ---
-    0x0294bc0, // PlayerListClass::Get_Player_By_Index (TODO)
-    0x0a16fd0, // PlayerList global object (TODO)
-    0x06019f0, // PlayerWrapper::Create (TODO)
+    0x0294bc0, // PlayerListClass::Get_Player_By_Index
+    0x0a16fd0, // PlayerList global object
+    0x06019f0, // PlayerWrapper::Create
 
     // --- Scripts ---
-    0x0245790, // LuaScriptClass::Get_Script_From_State (TODO)
-    0x0247700, // LuaScriptClass::Map_Var_To_Lua (TODO)
+    0x0245790, // LuaScriptClass::Get_Script_From_State
+    0x0247700, // LuaScriptClass::Map_Var_To_Lua
 
     // --- Screen Text ---
-    0,         // TheCommandBar (TODO)
-    0,         // CommandBarClass::Add_Tutorial_Text inner (TODO)
-    0,         // CommandBarClass::Remove_Tutorial_Text (TODO)
+    0x0b27f60, // TheCommandBar
+    0x02dfd10, // CommandBarClass::Add_Tutorial_Text inner
+    0x02ff290, // CommandBarClass::Remove_Tutorial_Text
 
     // --- Debug ---
-    0,         // Debug_Print (TODO)
+    0,         // Debug_Print (not mapped)
 };
