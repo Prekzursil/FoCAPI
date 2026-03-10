@@ -17,6 +17,8 @@ typedef void*        (*fn_GetPlayerByIndex)(void*, int);          // PlayerListC
 typedef void*        (*fn_PlayerWrapperCreate)(void*, void*);     // PlayerWrapper::Create(PlayerClass*, LuaScriptClass*)
 typedef void*        (*fn_GetScriptFromState)(lua_State*);        // LuaScriptClass::Get_Script_From_State
 typedef void         (*fn_MapVarToLua)(lua_State*, void*);        // LuaScriptClass::Map_Var_To_Lua (static)
+typedef void         (*fn_AddTutorialText)(void*, void*, const char*, float, unsigned int, bool, void*); // CommandBarClass::Add_Tutorial_Text (inner)
+typedef void         (*fn_RemoveTutorialText)(void*, const char*);                                      // CommandBarClass::Remove_Tutorial_Text
 typedef void         (*fn_DebugPrint)(const char*);               // Debug_Print
 
 // Resolved function pointers (defined in lua_hook.cpp)
@@ -33,6 +35,9 @@ extern void*                  g_player_list;
 extern fn_PlayerWrapperCreate pfn_player_wrapper_create;
 extern fn_GetScriptFromState  pfn_get_script_from_state;
 extern fn_MapVarToLua         pfn_map_var_to_lua;
+extern fn_AddTutorialText     pfn_add_tutorial_text;
+extern fn_RemoveTutorialText  pfn_remove_tutorial_text;
+extern void*                  g_command_bar;
 extern fn_DebugPrint          pfn_debug_print;
 
 constexpr int LUA_GLOBALSINDEX = -10001;

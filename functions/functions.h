@@ -10,3 +10,4 @@ void Register_All(lua_State* L);
 // Each checks its own required function pointer guards before registering.
 void Register_FileIO(lua_State* L);
 void Register_Players(lua_State* L);
+void Register_ScreenText(lua_State* L);
