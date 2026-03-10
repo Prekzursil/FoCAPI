@@ -10,4 +10,5 @@
 void Register_All(lua_State* L) {
     Register_FileIO(L);
     Register_Players(L);
+    Register_ScreenText(L);
 }

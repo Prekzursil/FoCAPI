@@ -17,6 +17,9 @@ void*                  g_player_list             = nullptr;
 fn_PlayerWrapperCreate pfn_player_wrapper_create = nullptr;
 fn_GetScriptFromState  pfn_get_script_from_state = nullptr;
 fn_MapVarToLua         pfn_map_var_to_lua        = nullptr;
+fn_AddTutorialText     pfn_add_tutorial_text     = nullptr;
+fn_RemoveTutorialText  pfn_remove_tutorial_text  = nullptr;
+void*                  g_command_bar             = nullptr;
 fn_DebugPrint          pfn_debug_print           = nullptr;
 
 void register_global(lua_State* L, const char* name, lua_CFunction fn) {
@@ -70,6 +73,12 @@ bool LuaHook_Init() {
 		pfn_player_wrapper_create = (fn_PlayerWrapperCreate)(base + rvas->player_wrapper_create);
 		pfn_get_script_from_state = (fn_GetScriptFromState)(base + rvas->get_script_from_state);
 		pfn_map_var_to_lua        = (fn_MapVarToLua)(base + rvas->map_var_to_lua);
+	}
+
+	if (rvas->command_bar && rvas->add_tutorial_text && rvas->remove_tutorial_text) {
+		g_command_bar            = (void*)(base + rvas->command_bar);
+		pfn_add_tutorial_text    = (fn_AddTutorialText)(base + rvas->add_tutorial_text);
+		pfn_remove_tutorial_text = (fn_RemoveTutorialText)(base + rvas->remove_tutorial_text);
 	}
 
 	if (rvas->debug_print)

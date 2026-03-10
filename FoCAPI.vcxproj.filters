@@ -50,6 +50,9 @@
     <ClCompile Include="functions\players.cpp">
       <Filter>Source Files\Functions</Filter>
     </ClCompile>
+    <ClCompile Include="functions\screen_text.cpp">
+      <Filter>Source Files\Functions</Filter>
+    </ClCompile>
     <ClCompile Include="functions\file_io.cpp">
       <Filter>Source Files\Functions</Filter>
     </ClCompile>

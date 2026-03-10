@@ -21,6 +21,11 @@ struct LuaRVAs {
     uintptr_t get_script_from_state;   // LuaScriptClass::Get_Script_From_State (static)
     uintptr_t map_var_to_lua;          // LuaScriptClass::Map_Var_To_Lua (member)
 
+    // --- Screen Text ---
+    uintptr_t command_bar;             // TheCommandBar global object (data, not a function)
+    uintptr_t add_tutorial_text;       // CommandBarClass::Add_Tutorial_Text (inner overload: wstring*, char*, float, uint, bool, RGBAClass*)
+    uintptr_t remove_tutorial_text;    // CommandBarClass::Remove_Tutorial_Text(char*)
+
     // --- Debug ---
     uintptr_t debug_print;             // Debug_Print(char*)
 };
@@ -46,6 +51,11 @@ constexpr LuaRVAs RVAs_StarWarsI = {
     0x0537BB0, // LuaScriptClass::Get_Script_From_State
     0x0536FE0, // LuaScriptClass::Map_Var_To_Lua
 
+    // --- Screen Text ---
+    0x1916b80, // TheCommandBar global object
+    0x003c83a, // CommandBarClass::Add_Tutorial_Text inner
+    0x006e1eb, // CommandBarClass::Remove_Tutorial_Text
+
     // --- Debug ---
     0x0476AE0, // Debug_Print
 };
@@ -59,18 +69,23 @@ constexpr LuaRVAs RVAs_StarWarsG = {
     0x07b9a60, // lua_settable
     0x07b9cc0, // lua_tostring
     0x07b9bc0, // lua_tonumber
-    0x07b9140, // lua_newtable (TODO)
-    0x07b9820, // lua_rawseti (TODO)
+    0x07b9140, // lua_newtable
+    0x07b9820, // lua_rawseti
 
     // --- Players ---
-    0x0294bc0, // PlayerListClass::Get_Player_By_Index (TODO)
-    0x0a16fd0, // PlayerList global object (TODO)
-    0x06019f0, // PlayerWrapper::Create (TODO)
+    0x0294bc0, // PlayerListClass::Get_Player_By_Index
+    0x0a16fd0, // PlayerList global object
+    0x06019f0, // PlayerWrapper::Create
 
     // --- Scripts ---
-    0x0245790, // LuaScriptClass::Get_Script_From_State (TODO)
-    0x0247700, // LuaScriptClass::Map_Var_To_Lua (TODO)
+    0x0245790, // LuaScriptClass::Get_Script_From_State
+    0x0247700, // LuaScriptClass::Map_Var_To_Lua
+
+    // --- Screen Text ---
+    0x0b27f60, // TheCommandBar
+    0x02dfd10, // CommandBarClass::Add_Tutorial_Text inner
+    0x02ff290, // CommandBarClass::Remove_Tutorial_Text
 
     // --- Debug ---
-    0,         // Debug_Print (TODO)
+    0,         // Debug_Print (not mapped)
 };
