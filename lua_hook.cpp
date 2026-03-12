@@ -21,11 +21,26 @@ fn_AddTutorialText     pfn_add_tutorial_text     = nullptr;
 fn_RemoveTutorialText  pfn_remove_tutorial_text  = nullptr;
 void*                  g_command_bar             = nullptr;
 fn_DebugPrint          pfn_debug_print           = nullptr;
+fn_RegisterMember      pfn_register_member       = nullptr;
+fn_LuaValueCtor        pfn_lua_value_ctor        = nullptr;
+fn_ReturnVariable      pfn_return_variable       = nullptr;
+fn_GotWrapperCtor      real_got_wrapper_ctor     = nullptr;
+fn_LmfwCtor            pfn_lmfw_ctor             = nullptr;
+fn_GetTextNameId       pfn_get_text_name_id      = nullptr;
+fn_GameTextGet         pfn_game_text_get         = nullptr;
+void*                  g_the_game_text           = nullptr;
 
 void register_global(lua_State* L, const char* name, lua_CFunction fn) {
 	pfn_pushstring(L, name);
 	pfn_pushcclosure(L, fn, 0);
 	pfn_settable(L, LUA_GLOBALSINDEX);
+}
+
+// Fired every time the game constructs a GameObjectTypeWrapper
+static void* Hook_GOTWrapperCtor(void* this_wrapper) {
+	void* result = real_got_wrapper_ctor(this_wrapper);
+	Register_GOTMembers(this_wrapper);
+	return result;
 }
 
 // Fired every time the game creates a new Lua state
@@ -84,6 +99,22 @@ bool LuaHook_Init() {
 	if (rvas->debug_print)
 		pfn_debug_print = (fn_DebugPrint)(base + rvas->debug_print);
 
+	if (rvas->register_member)
+		pfn_register_member = (fn_RegisterMember)(base + rvas->register_member);
+	if (rvas->lua_value_ctor)
+		pfn_lua_value_ctor = (fn_LuaValueCtor)(base + rvas->lua_value_ctor);
+	if (rvas->return_variable)
+		pfn_return_variable = (fn_ReturnVariable)(base + rvas->return_variable);
+
+	if (rvas->the_game_text)
+		g_the_game_text = (void*)(base + rvas->the_game_text);
+	if (rvas->get_string)
+		pfn_game_text_get = (fn_GameTextGet)(base + rvas->get_string);
+	if (rvas->got_get_text_name_id)
+		pfn_get_text_name_id = (fn_GetTextNameId)(base + rvas->got_get_text_name_id);
+	if (rvas->got_lmfw_ctor)
+		pfn_lmfw_ctor = (fn_LmfwCtor)(base + rvas->got_lmfw_ctor);
+
 	if (rvas->lua_newtable && rvas->lua_rawseti) {
 		pfn_newtable = (fn_lua_newtable)(base + rvas->lua_newtable);
 		pfn_rawseti  = (fn_lua_rawseti)(base + rvas->lua_rawseti);
@@ -101,6 +132,18 @@ bool LuaHook_Init() {
 
 	if (MH_EnableHook(target) != MH_OK) {
 		return false;
+	}
+
+	// Hook GameObjectTypeWrapper constructor to register custom member functions
+	if (rvas->got_wrapper_ctor && rvas->got_lmfw_ctor &&
+		pfn_register_member && pfn_lmfw_ctor &&
+		pfn_get_text_name_id && pfn_game_text_get && g_the_game_text &&
+		pfn_lua_value_ctor && pfn_return_variable)
+	{
+		void* got_ctor_target = (void*)(base + rvas->got_wrapper_ctor);
+		if (MH_CreateHook(got_ctor_target, &Hook_GOTWrapperCtor, (void**)&real_got_wrapper_ctor) == MH_OK) {
+			MH_EnableHook(got_ctor_target);
+		}
 	}
 
 	return true;

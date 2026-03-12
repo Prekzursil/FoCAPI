@@ -11,3 +11,7 @@ void Register_All(lua_State* L);
 void Register_FileIO(lua_State* L);
 void Register_Players(lua_State* L);
 void Register_ScreenText(lua_State* L);
+
+// Called from the GameObjectTypeWrapper ctor hook (not from Register_All).
+// Registers custom member functions on each wrapper instance.
+void Register_GOTMembers(void* wrapper);

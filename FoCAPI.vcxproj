@@ -167,6 +167,7 @@
     <ClCompile Include="functions\file_io.cpp" />
     <ClCompile Include="functions\players.cpp" />
     <ClCompile Include="functions\screen_text.cpp" />
+    <ClCompile Include="functions\game_object_type.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="powrprof.def" />
