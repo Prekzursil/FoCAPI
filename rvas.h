@@ -12,19 +12,31 @@ struct LuaRVAs {
     uintptr_t lua_newtable;
     uintptr_t lua_rawseti;
 
+    // --- Scripts ---
+    uintptr_t get_script_from_state;   // LuaScriptClass::Get_Script_From_State (static)
+    uintptr_t map_var_to_lua;          // LuaScriptClass::Map_Var_To_Lua (member)
+    uintptr_t register_member;         // LuaUserVar::Register_Member(char*, LuaVar*)
+    uintptr_t lua_value_ctor;          // LuaValue<>::LuaValue<>(basic_string<>*)
+    uintptr_t return_variable;         // LuaUserVar::Return_Variable(LuaVar*)
+
+    // --- TheGameText ---
+	uintptr_t the_game_text;		  // TheGameText global object (data, not a function)
+	uintptr_t get_string;			  // GameTextClass::Get(char*, bool)
+
     // --- Players ---
     uintptr_t get_player_by_index;     // PlayerListClass::Get_Player_By_Index
     uintptr_t player_list;             // PlayerList global object (data, not a function)
     uintptr_t player_wrapper_create;   // PlayerWrapper::Create (static)
 
-    // --- Scripts ---
-    uintptr_t get_script_from_state;   // LuaScriptClass::Get_Script_From_State (static)
-    uintptr_t map_var_to_lua;          // LuaScriptClass::Map_Var_To_Lua (member)
-
     // --- Screen Text ---
     uintptr_t command_bar;             // TheCommandBar global object (data, not a function)
     uintptr_t add_tutorial_text;       // CommandBarClass::Add_Tutorial_Text (inner overload: wstring*, char*, float, uint, bool, RGBAClass*)
     uintptr_t remove_tutorial_text;    // CommandBarClass::Remove_Tutorial_Text(char*)
+
+    // --- Game Object Type Wrapper ---
+    uintptr_t got_wrapper_ctor;        // GameObjectTypeWrapper::GameObjectTypeWrapper()
+    uintptr_t got_get_text_name_id;    // GameObjectTypeClass::Get_Text_Name_ID()
+    uintptr_t got_lmfw_ctor;           // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::LuaMemberFunctionWrapper<>()
 
     // --- Debug ---
     uintptr_t debug_print;             // Debug_Print(char*)
@@ -42,19 +54,31 @@ constexpr LuaRVAs RVAs_StarWarsI = {
     0x12AC460, // lua_newtable
     0x12ACD70, // lua_rawseti
 
+    // --- Scripts ---
+    0x0537BB0, // LuaScriptClass::Get_Script_From_State
+    0x0536FE0, // LuaScriptClass::Map_Var_To_Lua
+    0x0046f51, // LuaUserVar::Register_Member
+    0x004df5e, // LuaValue<>::LuaValue<>
+    0x0058887, // LuaUserVar::Return_Variable
+
+    // --- TheGameText ---
+    0x18578b0, // TheGameText global object
+    0x002b4cc, // GameTextClass::Get
+
     // --- Players ---
     0x000b0e1, // PlayerListClass::Get_Player_By_Index
     0x1913158, // PlayerList global object
     0x0F12010, // PlayerWrapper::Create
 
-    // --- Scripts ---
-    0x0537BB0, // LuaScriptClass::Get_Script_From_State
-    0x0536FE0, // LuaScriptClass::Map_Var_To_Lua
-
     // --- Screen Text ---
     0x1916b80, // TheCommandBar global object
     0x003c83a, // CommandBarClass::Add_Tutorial_Text inner
     0x006e1eb, // CommandBarClass::Remove_Tutorial_Text
+
+    // --- Game Object Type Wrapper ---
+    0x004f6c9, // GameObjectTypeWrapper::GameObjectTypeWrapper()
+	0x007b747, // GameObjectTypeClass::Get_Text_Name_ID()
+    0x0f08450, // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::ctor
 
     // --- Debug ---
     0x0476AE0, // Debug_Print
@@ -72,19 +96,31 @@ constexpr LuaRVAs RVAs_StarWarsG = {
     0x07b9140, // lua_newtable
     0x07b9820, // lua_rawseti
 
+    // --- Scripts ---
+    0x0245790, // LuaScriptClass::Get_Script_From_State
+    0x0247700, // LuaScriptClass::Map_Var_To_Lua
+    0,         // LuaUserVar::Register_Member  -- not mapped
+    0,         // LuaString::LuaString         -- not mapped
+    0,         // LuaUserVar::Return_Variable  -- not mapped
+
+    // --- TheGameText ---
+    0, // TheGameText global object
+    0, // GameTextClass::Get
+
     // --- Players ---
     0x0294bc0, // PlayerListClass::Get_Player_By_Index
     0x0a16fd0, // PlayerList global object
     0x06019f0, // PlayerWrapper::Create
 
-    // --- Scripts ---
-    0x0245790, // LuaScriptClass::Get_Script_From_State
-    0x0247700, // LuaScriptClass::Map_Var_To_Lua
-
     // --- Screen Text ---
-    0x0b27f60, // TheCommandBar
+    0x0b27f60, // TheCommandBar global object
     0x02dfd10, // CommandBarClass::Add_Tutorial_Text inner
     0x02ff290, // CommandBarClass::Remove_Tutorial_Text
+
+    // --- Game Object Type Wrapper ---
+    0,         // GameObjectTypeWrapper::GameObjectTypeWrapper() -- not mapped
+    0,         // GameObjectTypeClass::Get_Text_Name_ID()        -- not mapped
+    0,         // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::ctor -- not mapped
 
     // --- Debug ---
     0,         // Debug_Print (not mapped)

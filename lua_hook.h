@@ -20,6 +20,15 @@ typedef void         (*fn_MapVarToLua)(lua_State*, void*);        // LuaScriptCl
 typedef void         (*fn_AddTutorialText)(void*, void*, const char*, float, unsigned int, bool, void*); // CommandBarClass::Add_Tutorial_Text (inner)
 typedef void         (*fn_RemoveTutorialText)(void*, const char*);                                      // CommandBarClass::Remove_Tutorial_Text
 typedef void         (*fn_DebugPrint)(const char*);               // Debug_Print
+// Scripting internals (LuaUserVar) -- usable by any wrapper module
+typedef void         (*fn_RegisterMember)(void* uservar, const char* name, void* fn_ptr); // LuaUserVar::Register_Member
+typedef void         (*fn_LuaValueCtor)(void* lua_value, void* basic_string_ptr);         // LuaValue<>::LuaValue<>(basic_string<>*)
+typedef void*        (*fn_ReturnVariable)(void* uservar, void* lua_var);                  // LuaUserVar::Return_Variable(LuaVar*) -> LuaTable*
+// Game Object Type Wrapper internals
+typedef void*        (*fn_GotWrapperCtor)(void* this_wrapper);                            // GameObjectTypeWrapper::GameObjectTypeWrapper()
+typedef void*        (*fn_LmfwCtor)(void* lmfw, void* wrapper, void* pmf, bool use_maps); // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::ctor
+typedef void*        (*fn_GetTextNameId)(void* got_class, void* out_string);              // GameObjectTypeClass::Get_Text_Name_ID() -- returns via hidden out-param
+typedef void*        (*fn_GameTextGet)(void* game_text, void* text_id_str, bool insert);  // GameTextClass::Get(basic_string*, bool) -- returns wstring*
 
 // Resolved function pointers (defined in lua_hook.cpp)
 extern fn_lua_open            real_lua_open;
@@ -39,6 +48,14 @@ extern fn_AddTutorialText     pfn_add_tutorial_text;
 extern fn_RemoveTutorialText  pfn_remove_tutorial_text;
 extern void*                  g_command_bar;
 extern fn_DebugPrint          pfn_debug_print;
+extern fn_RegisterMember      pfn_register_member;
+extern fn_LuaValueCtor        pfn_lua_value_ctor;
+extern fn_ReturnVariable      pfn_return_variable;
+extern fn_GotWrapperCtor      real_got_wrapper_ctor;
+extern fn_LmfwCtor            pfn_lmfw_ctor;
+extern fn_GetTextNameId       pfn_get_text_name_id;
+extern fn_GameTextGet         pfn_game_text_get;
+extern void*                  g_the_game_text;
 
 constexpr int LUA_GLOBALSINDEX = -10001;
 
