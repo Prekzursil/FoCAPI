@@ -4,11 +4,11 @@ A powrprof.dll hook which adds custom Lua functions to Forces of Corruption.
 
 ## Usage
 
-Drop powrprof.dll and MinHooks.x64.dll into the `/corruption/` folder of your Empire at War installation.
+Drop powrprof.dll and MinHooks.x64.dll into the `/corruption` folder of your Empire at War installation.
 Works with both the debug kit `StarWarsI.exe` and client version `StarWarsG.exe` of the Steam version.
 Not supported on disc / GoG versions (sorry).
 
-## Functions
+## Global Functions
 
 - Global `WriteToFile(file, text)` - Appends a line of text specified file in the game directory.
   - Parameter `file` string - The file name to append.
@@ -24,3 +24,7 @@ Not supported on disc / GoG versions (sorry).
   - Parameter `a` number? - The alpha component. Default: 1
 - Global `Remove_Tutorial_Text(key)` - Removes the line associated with the key.
   - Parameter `key` string - The key used to identify the line when it was added.
+  
+## GameObjectTypeWrapper
+
+- `Get_Display_Name()` - Returns the localized text string display name of the object type.
