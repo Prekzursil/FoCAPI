@@ -2,6 +2,12 @@
 #include "functions/functions.h"
 #include <MinHook.h>
 #include <windows.h>
+#include <cstring>
+#include <new>
+
+// Cached during init for CreateLuaValueString
+static const LuaRVAs* g_rvas = nullptr;
+static uintptr_t      g_base = 0;
 
 // Resolved function pointers
 fn_lua_open            real_lua_open          = nullptr;
@@ -22,7 +28,6 @@ fn_RemoveTutorialText  pfn_remove_tutorial_text  = nullptr;
 void*                  g_command_bar             = nullptr;
 fn_DebugPrint          pfn_debug_print           = nullptr;
 fn_RegisterMember      pfn_register_member       = nullptr;
-fn_LuaValueCtor        pfn_lua_value_ctor        = nullptr;
 fn_ReturnVariable      pfn_return_variable       = nullptr;
 fn_GotWrapperCtor      real_got_wrapper_ctor     = nullptr;
 fn_LmfwCtor            pfn_lmfw_ctor             = nullptr;
@@ -34,6 +39,24 @@ void register_global(lua_State* L, const char* name, lua_CFunction fn) {
 	pfn_pushstring(L, name);
 	pfn_pushcclosure(L, fn, 0);
 	pfn_settable(L, LUA_GLOBALSINDEX);
+}
+
+void* CreateLuaValueString(const std::string& str) {
+	if (!g_rvas || !g_rvas->lua_value_string_vftable)
+		return nullptr;
+
+	void* obj = ::operator new(g_rvas->lua_value_string_size);
+	if (!obj)
+		return nullptr;
+	memset(obj, 0, g_rvas->lua_value_string_size);
+
+	// Set the vftable pointer
+	*(uintptr_t*)obj = g_base + g_rvas->lua_value_string_vftable;
+
+	// Placement-new the string into the member offset
+	new ((char*)obj + g_rvas->lua_value_string_offset) std::string(str);
+
+	return obj;
 }
 
 // Fired every time the game constructs a GameObjectTypeWrapper
@@ -73,6 +96,8 @@ bool LuaHook_Init() {
 		return false;
 
 	uintptr_t base = (uintptr_t)GetModuleHandleA(nullptr);
+	g_rvas = rvas;
+	g_base = base;
 
 	pfn_pushstring   = (fn_lua_pushstring)(base + rvas->lua_pushstring);
 	pfn_pushcclosure = (fn_lua_pushcclosure)(base + rvas->lua_pushcclosure);
@@ -101,8 +126,6 @@ bool LuaHook_Init() {
 
 	if (rvas->register_member)
 		pfn_register_member = (fn_RegisterMember)(base + rvas->register_member);
-	if (rvas->lua_value_ctor)
-		pfn_lua_value_ctor = (fn_LuaValueCtor)(base + rvas->lua_value_ctor);
 	if (rvas->return_variable)
 		pfn_return_variable = (fn_ReturnVariable)(base + rvas->return_variable);
 
@@ -138,7 +161,7 @@ bool LuaHook_Init() {
 	if (rvas->got_wrapper_ctor && rvas->got_lmfw_ctor &&
 		pfn_register_member && pfn_lmfw_ctor &&
 		pfn_get_text_name_id && pfn_game_text_get && g_the_game_text &&
-		pfn_lua_value_ctor && pfn_return_variable)
+		rvas->lua_value_string_vftable && pfn_return_variable)
 	{
 		void* got_ctor_target = (void*)(base + rvas->got_wrapper_ctor);
 		if (MH_CreateHook(got_ctor_target, &Hook_GOTWrapperCtor, (void**)&real_got_wrapper_ctor) == MH_OK) {

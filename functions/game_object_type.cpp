@@ -54,12 +54,10 @@ static void* Lua_Get_Display_Name(void* this_wrapper, void* /*script*/, void* /*
     std::string narrow(narrow_len, '\0');
     WideCharToMultiByte(CP_UTF8, 0, wdata, wlen, &narrow[0], narrow_len, nullptr, nullptr);
 
-    // 5. Create a LuaString (LuaValue<string>, 0x78 bytes) and return it.
-    void* lua_value = ::operator new(0x78);
+    // 5. Create a LuaString (LuaValue<string>) and return it.
+    void* lua_value = CreateLuaValueString(narrow);
     if (!lua_value)
         return nullptr;
-    memset(lua_value, 0, 0x78);
-    pfn_lua_value_ctor(lua_value, &narrow);
 
     return pfn_return_variable(this_wrapper, lua_value);
 }
@@ -70,7 +68,7 @@ void Register_GOTMembers(void* wrapper)
         return;
     if (!pfn_get_text_name_id || !pfn_game_text_get || !g_the_game_text)
         return;
-    if (!pfn_lua_value_ctor || !pfn_return_variable)
+    if (!pfn_return_variable)
         return;
 
     // Allocate a LuaMemberFunctionWrapper<GameObjectTypeWrapper> (0x88 bytes).

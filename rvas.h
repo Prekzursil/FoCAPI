@@ -16,7 +16,9 @@ struct LuaRVAs {
     uintptr_t get_script_from_state;   // LuaScriptClass::Get_Script_From_State (static)
     uintptr_t map_var_to_lua;          // LuaScriptClass::Map_Var_To_Lua (member)
     uintptr_t register_member;         // LuaUserVar::Register_Member(char*, LuaVar*)
-    uintptr_t lua_value_ctor;          // LuaValue<>::LuaValue<>(basic_string<>*)
+    uintptr_t lua_value_string_vftable; // LuaValue<basic_string<>>::vftable
+    size_t    lua_value_string_size;   // allocation size of LuaValue<basic_string<>>
+    size_t    lua_value_string_offset; // offset of basic_string member within LuaValue
     uintptr_t return_variable;         // LuaUserVar::Return_Variable(LuaVar*)
 
     // --- TheGameText ---
@@ -58,7 +60,9 @@ constexpr LuaRVAs RVAs_StarWarsI = {
     0x0537BB0, // LuaScriptClass::Get_Script_From_State
     0x0536FE0, // LuaScriptClass::Map_Var_To_Lua
     0x0046f51, // LuaUserVar::Register_Member
-    0x004df5e, // LuaValue<>::LuaValue<>
+    0x1453310, // LuaValue<basic_string<>>::vftable
+    0x78,      // LuaValue<basic_string<>> allocation size
+    0x58,      // basic_string member offset within LuaValue
     0x0058887, // LuaUserVar::Return_Variable
 
     // --- TheGameText ---
@@ -99,13 +103,15 @@ constexpr LuaRVAs RVAs_StarWarsG = {
     // --- Scripts ---
     0x0245790, // LuaScriptClass::Get_Script_From_State
     0x0247700, // LuaScriptClass::Map_Var_To_Lua
-    0,         // LuaUserVar::Register_Member  -- not mapped
-    0,         // LuaString::LuaString         -- not mapped
-    0,         // LuaUserVar::Return_Variable  -- not mapped
+    0x024be40, // LuaUserVar::Register_Member
+    0x0855a98, // LuaValue<basic_string<>>::vftable
+    0x30,     // LuaValue<basic_string<>> allocation size
+    0x10,     // basic_string member offset within LuaValue
+    0x0256d40, // LuaUserVar::Return_Variable
 
     // --- TheGameText ---
-    0, // TheGameText global object
-    0, // GameTextClass::Get
+    0x0a7bc58, // TheGameText global object
+    0x01fa680, // GameTextClass::Get
 
     // --- Players ---
     0x0294bc0, // PlayerListClass::Get_Player_By_Index
@@ -118,7 +124,7 @@ constexpr LuaRVAs RVAs_StarWarsG = {
     0x02ff290, // CommandBarClass::Remove_Tutorial_Text
 
     // --- Game Object Type Wrapper ---
-    0,         // GameObjectTypeWrapper::GameObjectTypeWrapper() -- not mapped
+    0x0604a10, // GameObjectTypeWrapper::GameObjectTypeWrapper()
     0,         // GameObjectTypeClass::Get_Text_Name_ID()        -- not mapped
     0,         // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::ctor -- not mapped
 

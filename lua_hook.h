@@ -1,5 +1,6 @@
 #pragma once
 #include "rvas.h"
+#include <string>
 
 struct lua_State;
 typedef int (*lua_CFunction)(lua_State*);
@@ -22,7 +23,6 @@ typedef void         (*fn_RemoveTutorialText)(void*, const char*);              
 typedef void         (*fn_DebugPrint)(const char*);               // Debug_Print
 // Scripting internals (LuaUserVar) -- usable by any wrapper module
 typedef void         (*fn_RegisterMember)(void* uservar, const char* name, void* fn_ptr); // LuaUserVar::Register_Member
-typedef void         (*fn_LuaValueCtor)(void* lua_value, void* basic_string_ptr);         // LuaValue<>::LuaValue<>(basic_string<>*)
 typedef void*        (*fn_ReturnVariable)(void* uservar, void* lua_var);                  // LuaUserVar::Return_Variable(LuaVar*) -> LuaTable*
 // Game Object Type Wrapper internals
 typedef void*        (*fn_GotWrapperCtor)(void* this_wrapper);                            // GameObjectTypeWrapper::GameObjectTypeWrapper()
@@ -49,7 +49,6 @@ extern fn_RemoveTutorialText  pfn_remove_tutorial_text;
 extern void*                  g_command_bar;
 extern fn_DebugPrint          pfn_debug_print;
 extern fn_RegisterMember      pfn_register_member;
-extern fn_LuaValueCtor        pfn_lua_value_ctor;
 extern fn_ReturnVariable      pfn_return_variable;
 extern fn_GotWrapperCtor      real_got_wrapper_ctor;
 extern fn_LmfwCtor            pfn_lmfw_ctor;
@@ -61,6 +60,10 @@ constexpr int LUA_GLOBALSINDEX = -10001;
 
 // Equivalent of lua_setglobal — registers a C function in the Lua global table
 void register_global(lua_State* L, const char* name, lua_CFunction fn);
+
+// Creates a LuaValue<basic_string<>> from a std::string.
+// Reproduces the inlined constructor pattern using per-executable layout constants.
+void* CreateLuaValueString(const std::string& str);
 
 bool LuaHook_Init();
 void LuaHook_Shutdown();
