@@ -37,8 +37,14 @@ struct LuaRVAs {
 
     // --- Game Object Type Wrapper ---
     uintptr_t got_wrapper_ctor;        // GameObjectTypeWrapper::GameObjectTypeWrapper()
-    uintptr_t got_get_text_name_id;    // GameObjectTypeClass::Get_Text_Name_ID()
-    uintptr_t got_lmfw_ctor;           // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::LuaMemberFunctionWrapper<>()
+    size_t    got_text_name_id_offset;  // offset of TextNameID (std::string) within GameObjectTypeClass
+    // LuaMemberFunctionWrapper<GameObjectTypeWrapper> layout (ctor always inlined)
+    uintptr_t lmfw_vftable;            // LuaMemberFunctionWrapper<>::vftable
+    uintptr_t lua_uservar_ctor;        // LuaUserVar::LuaUserVar(int, bool)
+    size_t    lmfw_alloc_size;         // allocation size of LuaMemberFunctionWrapper<>
+    size_t    lmfw_pmf_offset;         // offset of MemberFunction (16-byte PMF)
+    size_t    lmfw_object_offset;      // offset of Object (wrapper pointer)
+    size_t    lmfw_usemaps_offset;     // offset of UseMaps (bool)
 
     // --- Debug ---
     uintptr_t debug_print;             // Debug_Print(char*)
@@ -81,8 +87,13 @@ constexpr LuaRVAs RVAs_StarWarsI = {
 
     // --- Game Object Type Wrapper ---
     0x004f6c9, // GameObjectTypeWrapper::GameObjectTypeWrapper()
-	0x007b747, // GameObjectTypeClass::Get_Text_Name_ID()
-    0x0f08450, // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::ctor
+    0x160,     // GameObjectTypeClass::TextNameID field offset
+    0x158a680, // LuaMemberFunctionWrapper<>::vftable
+    0x0074f55, // LuaUserVar::LuaUserVar
+    0x88,      // LuaMemberFunctionWrapper<> allocation size
+    0x68,      // MemberFunction offset
+    0x78,      // Object offset
+    0x80,      // UseMaps offset
 
     // --- Debug ---
     0x0476AE0, // Debug_Print
@@ -125,8 +136,13 @@ constexpr LuaRVAs RVAs_StarWarsG = {
 
     // --- Game Object Type Wrapper ---
     0x0604a10, // GameObjectTypeWrapper::GameObjectTypeWrapper()
-    0,         // GameObjectTypeClass::Get_Text_Name_ID()        -- not mapped
-    0,         // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::ctor -- not mapped
+    0x120,     // GameObjectTypeClass::TextNameID field offset
+    0x08ab770, // LuaMemberFunctionWrapper<>::vftable
+    0x0249c20, // LuaUserVar::LuaUserVar
+    0x48,      // LuaMemberFunctionWrapper<> allocation size
+    0x28,      // MemberFunction offset
+    0x38,      // Object offset
+    0x40,      // UseMaps offset
 
     // --- Debug ---
     0,         // Debug_Print (not mapped)

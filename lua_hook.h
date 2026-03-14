@@ -26,8 +26,8 @@ typedef void         (*fn_RegisterMember)(void* uservar, const char* name, void*
 typedef void*        (*fn_ReturnVariable)(void* uservar, void* lua_var);                  // LuaUserVar::Return_Variable(LuaVar*) -> LuaTable*
 // Game Object Type Wrapper internals
 typedef void*        (*fn_GotWrapperCtor)(void* this_wrapper);                            // GameObjectTypeWrapper::GameObjectTypeWrapper()
-typedef void*        (*fn_LmfwCtor)(void* lmfw, void* wrapper, void* pmf, bool use_maps); // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::ctor
-typedef void*        (*fn_GetTextNameId)(void* got_class, void* out_string);              // GameObjectTypeClass::Get_Text_Name_ID() -- returns via hidden out-param
+typedef void*        (*fn_LuaUserVarCtor)(void* this_ptr, int param, bool flag);           // LuaUserVar::LuaUserVar(int, bool)
+// GameObjectTypeClass::TextNameID is accessed via field offset (always inlined by compiler)
 typedef void*        (*fn_GameTextGet)(void* game_text, void* text_id_str, bool insert);  // GameTextClass::Get(basic_string*, bool) -- returns wstring*
 
 // Resolved function pointers (defined in lua_hook.cpp)
@@ -51,10 +51,12 @@ extern fn_DebugPrint          pfn_debug_print;
 extern fn_RegisterMember      pfn_register_member;
 extern fn_ReturnVariable      pfn_return_variable;
 extern fn_GotWrapperCtor      real_got_wrapper_ctor;
-extern fn_LmfwCtor            pfn_lmfw_ctor;
-extern fn_GetTextNameId       pfn_get_text_name_id;
+extern fn_LuaUserVarCtor      pfn_lua_uservar_ctor;
+extern size_t                 g_text_name_id_offset;
 extern fn_GameTextGet         pfn_game_text_get;
 extern void*                  g_the_game_text;
+extern const LuaRVAs*         g_rvas;
+extern uintptr_t              g_base;
 
 constexpr int LUA_GLOBALSINDEX = -10001;
 

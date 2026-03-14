@@ -5,9 +5,9 @@
 #include <cstring>
 #include <new>
 
-// Cached during init for CreateLuaValueString
-static const LuaRVAs* g_rvas = nullptr;
-static uintptr_t      g_base = 0;
+// Cached during init — used by CreateLuaValueString and Register_GOTMembers
+const LuaRVAs* g_rvas = nullptr;
+uintptr_t      g_base = 0;
 
 // Resolved function pointers
 fn_lua_open            real_lua_open          = nullptr;
@@ -30,8 +30,8 @@ fn_DebugPrint          pfn_debug_print           = nullptr;
 fn_RegisterMember      pfn_register_member       = nullptr;
 fn_ReturnVariable      pfn_return_variable       = nullptr;
 fn_GotWrapperCtor      real_got_wrapper_ctor     = nullptr;
-fn_LmfwCtor            pfn_lmfw_ctor             = nullptr;
-fn_GetTextNameId       pfn_get_text_name_id      = nullptr;
+fn_LuaUserVarCtor      pfn_lua_uservar_ctor      = nullptr;
+size_t                 g_text_name_id_offset     = 0;
 fn_GameTextGet         pfn_game_text_get         = nullptr;
 void*                  g_the_game_text           = nullptr;
 
@@ -133,10 +133,10 @@ bool LuaHook_Init() {
 		g_the_game_text = (void*)(base + rvas->the_game_text);
 	if (rvas->get_string)
 		pfn_game_text_get = (fn_GameTextGet)(base + rvas->get_string);
-	if (rvas->got_get_text_name_id)
-		pfn_get_text_name_id = (fn_GetTextNameId)(base + rvas->got_get_text_name_id);
-	if (rvas->got_lmfw_ctor)
-		pfn_lmfw_ctor = (fn_LmfwCtor)(base + rvas->got_lmfw_ctor);
+	if (rvas->got_text_name_id_offset)
+		g_text_name_id_offset = rvas->got_text_name_id_offset;
+	if (rvas->lua_uservar_ctor)
+		pfn_lua_uservar_ctor = (fn_LuaUserVarCtor)(base + rvas->lua_uservar_ctor);
 
 	if (rvas->lua_newtable && rvas->lua_rawseti) {
 		pfn_newtable = (fn_lua_newtable)(base + rvas->lua_newtable);
@@ -158,9 +158,9 @@ bool LuaHook_Init() {
 	}
 
 	// Hook GameObjectTypeWrapper constructor to register custom member functions
-	if (rvas->got_wrapper_ctor && rvas->got_lmfw_ctor &&
-		pfn_register_member && pfn_lmfw_ctor &&
-		pfn_get_text_name_id && pfn_game_text_get && g_the_game_text &&
+	if (rvas->got_wrapper_ctor && rvas->lmfw_vftable && pfn_lua_uservar_ctor &&
+		pfn_register_member &&
+		g_text_name_id_offset && pfn_game_text_get && g_the_game_text &&
 		rvas->lua_value_string_vftable && pfn_return_variable)
 	{
 		void* got_ctor_target = (void*)(base + rvas->got_wrapper_ctor);
