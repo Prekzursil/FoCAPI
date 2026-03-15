@@ -9,8 +9,16 @@
 // before its own null check, so we always pass a valid buffer.
 static int L_Add_Tutorial_Text(lua_State* L)
 {
+    if (pfn_debug_print) pfn_debug_print("[FoCAPI] Add_Tutorial_Text: entered\n");
+
     const char* key  = pfn_tostring(L, 1);
     const char* text = pfn_tostring(L, 2);
+    if (pfn_debug_print) {
+        char msg[512];
+        wsprintfA(msg, "[FoCAPI] Add_Tutorial_Text: key = \"%s\", text = \"%s\"\n",
+                  key ? key : "(null)", text ? text : "(null)");
+        pfn_debug_print(msg);
+    }
     if (!key || !text)
         return 0;
 
@@ -35,11 +43,28 @@ static int L_Add_Tutorial_Text(lua_State* L)
         }
     }
 
+    if (pfn_debug_print) {
+        char msg[128];
+        wsprintfA(msg, "[FoCAPI] Add_Tutorial_Text: duration = %d, color = [%d,%d,%d,%d]\n",
+                  (int)(duration * 1000), (int)(color[0] * 255), (int)(color[1] * 255),
+                  (int)(color[2] * 255), (int)(color[3] * 255));
+        pfn_debug_print(msg);
+    }
+
     int wlen = MultiByteToWideChar(CP_ACP, 0, text, -1, nullptr, 0);
     std::wstring wtext(wlen - 1, L'\0');
     MultiByteToWideChar(CP_ACP, 0, text, -1, &wtext[0], wlen);
 
+    if (pfn_debug_print) {
+        char msg[128];
+        wsprintfA(msg, "[FoCAPI] Add_Tutorial_Text: wlen = %d, calling pfn_add_tutorial_text(%p, ...)\n",
+                  wlen, g_command_bar);
+        pfn_debug_print(msg);
+    }
+
     pfn_add_tutorial_text(g_command_bar, &wtext, (char*)key, duration, 0, false, color);
+
+    if (pfn_debug_print) pfn_debug_print("[FoCAPI] Add_Tutorial_Text: returned OK\n");
 
     return 0;
 }

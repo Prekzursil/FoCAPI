@@ -3,7 +3,27 @@
 #include <MinHook.h>
 #include <windows.h>
 #include <cstring>
+#include <cstdarg>
+#include <cstdio>
 #include <new>
+
+void debug_log(const char* fmt, ...) {
+	char buf[1024];
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+
+	// Also route through in-game debug if available
+	if (pfn_debug_print)
+		pfn_debug_print(buf);
+
+	FILE* f = nullptr;
+	if (fopen_s(&f, "FoCAPI_debug.log", "a") == 0 && f) {
+		fputs(buf, f);
+		fclose(f);
+	}
+}
 
 // Cached during init — used by CreateLuaValueString and Register_GOTMembers
 const LuaRVAs* g_rvas = nullptr;
@@ -32,6 +52,8 @@ fn_ReturnVariable      pfn_return_variable       = nullptr;
 fn_GotWrapperCtor      real_got_wrapper_ctor     = nullptr;
 fn_LuaUserVarCtor      pfn_lua_uservar_ctor      = nullptr;
 size_t                 g_text_name_id_offset     = 0;
+fn_LuaValueStringCtor  pfn_lua_value_string_ctor = nullptr;
+fn_GameOperatorNew     pfn_game_operator_new     = nullptr;
 fn_GameTextGet         pfn_game_text_get         = nullptr;
 void*                  g_the_game_text           = nullptr;
 
@@ -50,11 +72,35 @@ void* CreateLuaValueString(const std::string& str) {
 		return nullptr;
 	memset(obj, 0, g_rvas->lua_value_string_size);
 
-	// Set the vftable pointer
-	*(uintptr_t*)obj = g_base + g_rvas->lua_value_string_vftable;
+	if (pfn_lua_value_string_ctor) {
+		// Use the game's own constructor (StarWarsI).
+		// Handles all base class init (RefCountClass, RTTI, PooledObjectClass).
+		pfn_lua_value_string_ctor(obj, (void*)&str);
+	} else {
+		// Manual construction for builds where the ctor is inlined (StarWarsG).
+		*(uintptr_t*)obj = g_base + g_rvas->lua_value_string_vftable;
 
-	// Placement-new the string into the member offset
-	new ((char*)obj + g_rvas->lua_value_string_offset) std::string(str);
+		char* s = (char*)obj + g_rvas->lua_value_string_offset;
+		size_t len = str.size();
+
+		if (len < 16) {
+			memcpy(s, str.c_str(), len + 1);
+			*(size_t*)(s + 16) = len;
+			*(size_t*)(s + 24) = 15;
+		} else {
+			size_t cap = len | 0xF;
+			// Use the game's operator new so the game's destructor can free
+			// the buffer with its own operator delete (same CRT heap).
+			char* buf = pfn_game_operator_new
+				? (char*)pfn_game_operator_new(cap + 1)
+				: (char*)::operator new(cap + 1);
+			memcpy(buf, str.c_str(), len);
+			buf[len] = '\0';
+			*(char**)(s)       = buf;
+			*(size_t*)(s + 16) = len;
+			*(size_t*)(s + 24) = cap;
+		}
+	}
 
 	return obj;
 }
@@ -128,6 +174,11 @@ bool LuaHook_Init() {
 		pfn_register_member = (fn_RegisterMember)(base + rvas->register_member);
 	if (rvas->return_variable)
 		pfn_return_variable = (fn_ReturnVariable)(base + rvas->return_variable);
+
+	if (rvas->lua_value_string_ctor)
+		pfn_lua_value_string_ctor = (fn_LuaValueStringCtor)(base + rvas->lua_value_string_ctor);
+	if (rvas->game_operator_new)
+		pfn_game_operator_new = (fn_GameOperatorNew)(base + rvas->game_operator_new);
 
 	if (rvas->the_game_text)
 		g_the_game_text = (void*)(base + rvas->the_game_text);

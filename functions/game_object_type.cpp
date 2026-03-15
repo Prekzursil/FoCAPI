@@ -4,9 +4,8 @@
 #include <string>
 #include <cstring>
 
-// Offset of SmartPtr<GameObjectTypeClass> within GameObjectTypeWrapper.
-// SmartPtr stores the raw pointer as its first member.
-static constexpr int OFFSET_OBJECT = 0x70;
+// SmartPtr offset is per-executable (0x70 StarWarsI, 0x28 StarWarsG).
+// Read from g_rvas->got_object_offset at runtime.
 
 // MSVC std::string layout (x64, MSVC 14.0+).
 // Used to read the std::string at a known field offset within GameObjectTypeClass.
@@ -39,23 +38,21 @@ struct MSVCWString {
 // On x64 this is the standard calling convention: this_wrapper in RCX, script in RDX, params in R8.
 static void* Lua_Get_Display_Name(void* this_wrapper, void* /*script*/, void* /*params*/)
 {
-    // 1. Get GameObjectTypeClass* from SmartPtr at offset 0x70
-    void* got_class = *(void**)((char*)this_wrapper + OFFSET_OBJECT);
+    // 1. Get GameObjectTypeClass* from SmartPtr at offset
+    void* got_class = *(void**)((char*)this_wrapper + g_rvas->got_object_offset);
     if (!got_class)
         return nullptr;
 
-    // 2. Read the TextNameID string directly from the GameObjectTypeClass field.
-    //    Get_Text_Name_ID() is always inlined by the compiler, so we use the field offset.
+    // 2. Read the TextNameID string from the GameObjectTypeClass field
     MSVCString* text_name = (MSVCString*)((char*)got_class + g_text_name_id_offset);
     std::string text_id(text_name->c_str(), text_name->size);
 
-    // 3. Resolve the localized display name via TheGameText.Get(text_id, false).
-    //    Returns a pointer to an internal wstring (the translated text).
+    // 3. Resolve the localized display name via TheGameText.Get(text_id, false)
     MSVCWString* display_wstr = (MSVCWString*)pfn_game_text_get(g_the_game_text, &text_id, false);
     if (!display_wstr)
         return nullptr;
 
-    // 4. Convert the wide display name to a narrow (UTF-8) string for Lua.
+    // 4. Convert the wide display name to a narrow (UTF-8) string for Lua
     const wchar_t* wdata = display_wstr->c_str();
     int wlen = (int)display_wstr->size;
 
@@ -66,7 +63,7 @@ static void* Lua_Get_Display_Name(void* this_wrapper, void* /*script*/, void* /*
     std::string narrow(narrow_len, '\0');
     WideCharToMultiByte(CP_UTF8, 0, wdata, wlen, &narrow[0], narrow_len, nullptr, nullptr);
 
-    // 5. Create a LuaString (LuaValue<string>) and return it.
+    // 5. Create a LuaString and return it
     void* lua_value = CreateLuaValueString(narrow);
     if (!lua_value)
         return nullptr;

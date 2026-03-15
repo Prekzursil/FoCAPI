@@ -19,6 +19,8 @@ struct LuaRVAs {
     uintptr_t lua_value_string_vftable; // LuaValue<basic_string<>>::vftable
     size_t    lua_value_string_size;   // allocation size of LuaValue<basic_string<>>
     size_t    lua_value_string_offset; // offset of basic_string member within LuaValue
+    uintptr_t lua_value_string_ctor;   // LuaValue<basic_string<>>::LuaValue(basic_string*) — 0 if inlined
+    uintptr_t game_operator_new;       // operator new(size_t) — game's CRT allocator, 0 if ctor available
     uintptr_t return_variable;         // LuaUserVar::Return_Variable(LuaVar*)
 
     // --- TheGameText ---
@@ -37,6 +39,7 @@ struct LuaRVAs {
 
     // --- Game Object Type Wrapper ---
     uintptr_t got_wrapper_ctor;        // GameObjectTypeWrapper::GameObjectTypeWrapper()
+    size_t    got_object_offset;       // offset of SmartPtr<GameObjectTypeClass> within GameObjectTypeWrapper
     size_t    got_text_name_id_offset;  // offset of TextNameID (std::string) within GameObjectTypeClass
     // LuaMemberFunctionWrapper<GameObjectTypeWrapper> layout (ctor always inlined)
     uintptr_t lmfw_vftable;            // LuaMemberFunctionWrapper<>::vftable
@@ -69,6 +72,8 @@ constexpr LuaRVAs RVAs_StarWarsI = {
     0x1453310, // LuaValue<basic_string<>>::vftable
     0x78,      // LuaValue<basic_string<>> allocation size
     0x58,      // basic_string member offset within LuaValue
+    0x0122920, // LuaValue<basic_string<>>::LuaValue(basic_string*)
+    0,         // operator new(size_t) — not needed, ctor available
     0x0058887, // LuaUserVar::Return_Variable
 
     // --- TheGameText ---
@@ -87,6 +92,7 @@ constexpr LuaRVAs RVAs_StarWarsI = {
 
     // --- Game Object Type Wrapper ---
     0x004f6c9, // GameObjectTypeWrapper::GameObjectTypeWrapper()
+    0x70,      // SmartPtr<GameObjectTypeClass> offset within GameObjectTypeWrapper
     0x160,     // GameObjectTypeClass::TextNameID field offset
     0x158a680, // LuaMemberFunctionWrapper<>::vftable
     0x0074f55, // LuaUserVar::LuaUserVar
@@ -118,6 +124,8 @@ constexpr LuaRVAs RVAs_StarWarsG = {
     0x0855a98, // LuaValue<basic_string<>>::vftable
     0x30,     // LuaValue<basic_string<>> allocation size
     0x10,     // basic_string member offset within LuaValue
+    0,        // LuaValue<basic_string<>>::LuaValue(basic_string*) — inlined in StarWarsG
+    0x0769c58, // operator new(size_t) — game's CRT allocator for manual string construction
     0x0256d40, // LuaUserVar::Return_Variable
 
     // --- TheGameText ---
@@ -136,6 +144,7 @@ constexpr LuaRVAs RVAs_StarWarsG = {
 
     // --- Game Object Type Wrapper ---
     0x0604a10, // GameObjectTypeWrapper::GameObjectTypeWrapper()
+    0x28,      // SmartPtr<GameObjectTypeClass> offset within GameObjectTypeWrapper
     0x120,     // GameObjectTypeClass::TextNameID field offset
     0x08ab770, // LuaMemberFunctionWrapper<>::vftable
     0x0249c20, // LuaUserVar::LuaUserVar
