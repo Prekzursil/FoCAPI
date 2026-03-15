@@ -2,6 +2,32 @@
 #include "functions/functions.h"
 #include <MinHook.h>
 #include <windows.h>
+#include <cstring>
+#include <cstdarg>
+#include <cstdio>
+#include <new>
+
+void debug_log(const char* fmt, ...) {
+	char buf[1024];
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+
+	// Also route through in-game debug if available
+	if (pfn_debug_print)
+		pfn_debug_print(buf);
+
+	FILE* f = nullptr;
+	if (fopen_s(&f, "FoCAPI_debug.log", "a") == 0 && f) {
+		fputs(buf, f);
+		fclose(f);
+	}
+}
+
+// Cached during init — used by CreateLuaValueString and Register_GOTMembers
+const LuaRVAs* g_rvas = nullptr;
+uintptr_t      g_base = 0;
 
 // Resolved function pointers
 fn_lua_open            real_lua_open          = nullptr;
@@ -22,11 +48,12 @@ fn_RemoveTutorialText  pfn_remove_tutorial_text  = nullptr;
 void*                  g_command_bar             = nullptr;
 fn_DebugPrint          pfn_debug_print           = nullptr;
 fn_RegisterMember      pfn_register_member       = nullptr;
-fn_LuaValueCtor        pfn_lua_value_ctor        = nullptr;
 fn_ReturnVariable      pfn_return_variable       = nullptr;
 fn_GotWrapperCtor      real_got_wrapper_ctor     = nullptr;
-fn_LmfwCtor            pfn_lmfw_ctor             = nullptr;
-fn_GetTextNameId       pfn_get_text_name_id      = nullptr;
+fn_LuaUserVarCtor      pfn_lua_uservar_ctor      = nullptr;
+size_t                 g_text_name_id_offset     = 0;
+fn_LuaValueStringCtor  pfn_lua_value_string_ctor = nullptr;
+fn_GameOperatorNew     pfn_game_operator_new     = nullptr;
 fn_GameTextGet         pfn_game_text_get         = nullptr;
 void*                  g_the_game_text           = nullptr;
 
@@ -34,6 +61,48 @@ void register_global(lua_State* L, const char* name, lua_CFunction fn) {
 	pfn_pushstring(L, name);
 	pfn_pushcclosure(L, fn, 0);
 	pfn_settable(L, LUA_GLOBALSINDEX);
+}
+
+void* CreateLuaValueString(const std::string& str) {
+	if (!g_rvas || !g_rvas->lua_value_string_vftable)
+		return nullptr;
+
+	void* obj = ::operator new(g_rvas->lua_value_string_size);
+	if (!obj)
+		return nullptr;
+	memset(obj, 0, g_rvas->lua_value_string_size);
+
+	if (pfn_lua_value_string_ctor) {
+		// Use the game's own constructor (StarWarsI).
+		// Handles all base class init (RefCountClass, RTTI, PooledObjectClass).
+		pfn_lua_value_string_ctor(obj, (void*)&str);
+	} else {
+		// Manual construction for builds where the ctor is inlined (StarWarsG).
+		*(uintptr_t*)obj = g_base + g_rvas->lua_value_string_vftable;
+
+		char* s = (char*)obj + g_rvas->lua_value_string_offset;
+		size_t len = str.size();
+
+		if (len < 16) {
+			memcpy(s, str.c_str(), len + 1);
+			*(size_t*)(s + 16) = len;
+			*(size_t*)(s + 24) = 15;
+		} else {
+			size_t cap = len | 0xF;
+			// Use the game's operator new so the game's destructor can free
+			// the buffer with its own operator delete (same CRT heap).
+			char* buf = pfn_game_operator_new
+				? (char*)pfn_game_operator_new(cap + 1)
+				: (char*)::operator new(cap + 1);
+			memcpy(buf, str.c_str(), len);
+			buf[len] = '\0';
+			*(char**)(s)       = buf;
+			*(size_t*)(s + 16) = len;
+			*(size_t*)(s + 24) = cap;
+		}
+	}
+
+	return obj;
 }
 
 // Fired every time the game constructs a GameObjectTypeWrapper
@@ -73,6 +142,8 @@ bool LuaHook_Init() {
 		return false;
 
 	uintptr_t base = (uintptr_t)GetModuleHandleA(nullptr);
+	g_rvas = rvas;
+	g_base = base;
 
 	pfn_pushstring   = (fn_lua_pushstring)(base + rvas->lua_pushstring);
 	pfn_pushcclosure = (fn_lua_pushcclosure)(base + rvas->lua_pushcclosure);
@@ -101,19 +172,22 @@ bool LuaHook_Init() {
 
 	if (rvas->register_member)
 		pfn_register_member = (fn_RegisterMember)(base + rvas->register_member);
-	if (rvas->lua_value_ctor)
-		pfn_lua_value_ctor = (fn_LuaValueCtor)(base + rvas->lua_value_ctor);
 	if (rvas->return_variable)
 		pfn_return_variable = (fn_ReturnVariable)(base + rvas->return_variable);
+
+	if (rvas->lua_value_string_ctor)
+		pfn_lua_value_string_ctor = (fn_LuaValueStringCtor)(base + rvas->lua_value_string_ctor);
+	if (rvas->game_operator_new)
+		pfn_game_operator_new = (fn_GameOperatorNew)(base + rvas->game_operator_new);
 
 	if (rvas->the_game_text)
 		g_the_game_text = (void*)(base + rvas->the_game_text);
 	if (rvas->get_string)
 		pfn_game_text_get = (fn_GameTextGet)(base + rvas->get_string);
-	if (rvas->got_get_text_name_id)
-		pfn_get_text_name_id = (fn_GetTextNameId)(base + rvas->got_get_text_name_id);
-	if (rvas->got_lmfw_ctor)
-		pfn_lmfw_ctor = (fn_LmfwCtor)(base + rvas->got_lmfw_ctor);
+	if (rvas->got_text_name_id_offset)
+		g_text_name_id_offset = rvas->got_text_name_id_offset;
+	if (rvas->lua_uservar_ctor)
+		pfn_lua_uservar_ctor = (fn_LuaUserVarCtor)(base + rvas->lua_uservar_ctor);
 
 	if (rvas->lua_newtable && rvas->lua_rawseti) {
 		pfn_newtable = (fn_lua_newtable)(base + rvas->lua_newtable);
@@ -135,10 +209,10 @@ bool LuaHook_Init() {
 	}
 
 	// Hook GameObjectTypeWrapper constructor to register custom member functions
-	if (rvas->got_wrapper_ctor && rvas->got_lmfw_ctor &&
-		pfn_register_member && pfn_lmfw_ctor &&
-		pfn_get_text_name_id && pfn_game_text_get && g_the_game_text &&
-		pfn_lua_value_ctor && pfn_return_variable)
+	if (rvas->got_wrapper_ctor && rvas->lmfw_vftable && pfn_lua_uservar_ctor &&
+		pfn_register_member &&
+		g_text_name_id_offset && pfn_game_text_get && g_the_game_text &&
+		rvas->lua_value_string_vftable && pfn_return_variable)
 	{
 		void* got_ctor_target = (void*)(base + rvas->got_wrapper_ctor);
 		if (MH_CreateHook(got_ctor_target, &Hook_GOTWrapperCtor, (void**)&real_got_wrapper_ctor) == MH_OK) {

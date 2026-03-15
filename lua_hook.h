@@ -1,5 +1,6 @@
 #pragma once
 #include "rvas.h"
+#include <string>
 
 struct lua_State;
 typedef int (*lua_CFunction)(lua_State*);
@@ -22,12 +23,14 @@ typedef void         (*fn_RemoveTutorialText)(void*, const char*);              
 typedef void         (*fn_DebugPrint)(const char*);               // Debug_Print
 // Scripting internals (LuaUserVar) -- usable by any wrapper module
 typedef void         (*fn_RegisterMember)(void* uservar, const char* name, void* fn_ptr); // LuaUserVar::Register_Member
-typedef void         (*fn_LuaValueCtor)(void* lua_value, void* basic_string_ptr);         // LuaValue<>::LuaValue<>(basic_string<>*)
 typedef void*        (*fn_ReturnVariable)(void* uservar, void* lua_var);                  // LuaUserVar::Return_Variable(LuaVar*) -> LuaTable*
 // Game Object Type Wrapper internals
 typedef void*        (*fn_GotWrapperCtor)(void* this_wrapper);                            // GameObjectTypeWrapper::GameObjectTypeWrapper()
-typedef void*        (*fn_LmfwCtor)(void* lmfw, void* wrapper, void* pmf, bool use_maps); // LuaMemberFunctionWrapper<GameObjectTypeWrapper>::ctor
-typedef void*        (*fn_GetTextNameId)(void* got_class, void* out_string);              // GameObjectTypeClass::Get_Text_Name_ID() -- returns via hidden out-param
+typedef void*        (*fn_LuaUserVarCtor)(void* this_ptr, int param, bool flag);           // LuaUserVar::LuaUserVar(int, bool)
+// LuaValue<basic_string<>> constructor -- available in StarWarsI, inlined in StarWarsG
+typedef void*        (*fn_LuaValueStringCtor)(void* this_ptr, void* str_ptr);             // LuaValue<basic_string<>>::LuaValue(basic_string*)
+typedef void*        (*fn_GameOperatorNew)(size_t size);                                   // operator new(size_t) — game's CRT allocator
+// GameObjectTypeClass::TextNameID is accessed via field offset (always inlined by compiler)
 typedef void*        (*fn_GameTextGet)(void* game_text, void* text_id_str, bool insert);  // GameTextClass::Get(basic_string*, bool) -- returns wstring*
 
 // Resolved function pointers (defined in lua_hook.cpp)
@@ -49,18 +52,28 @@ extern fn_RemoveTutorialText  pfn_remove_tutorial_text;
 extern void*                  g_command_bar;
 extern fn_DebugPrint          pfn_debug_print;
 extern fn_RegisterMember      pfn_register_member;
-extern fn_LuaValueCtor        pfn_lua_value_ctor;
 extern fn_ReturnVariable      pfn_return_variable;
 extern fn_GotWrapperCtor      real_got_wrapper_ctor;
-extern fn_LmfwCtor            pfn_lmfw_ctor;
-extern fn_GetTextNameId       pfn_get_text_name_id;
+extern fn_LuaUserVarCtor      pfn_lua_uservar_ctor;
+extern size_t                 g_text_name_id_offset;
+extern fn_LuaValueStringCtor  pfn_lua_value_string_ctor;
+extern fn_GameOperatorNew     pfn_game_operator_new;
 extern fn_GameTextGet         pfn_game_text_get;
 extern void*                  g_the_game_text;
+extern const LuaRVAs*         g_rvas;
+extern uintptr_t              g_base;
 
 constexpr int LUA_GLOBALSINDEX = -10001;
 
 // Equivalent of lua_setglobal — registers a C function in the Lua global table
 void register_global(lua_State* L, const char* name, lua_CFunction fn);
+
+// Creates a LuaValue<basic_string<>> from a std::string.
+// Reproduces the inlined constructor pattern using per-executable layout constants.
+void* CreateLuaValueString(const std::string& str);
+
+// File-based debug logging (works on both executables; pfn_debug_print is unavailable on StarWarsG).
+void debug_log(const char* fmt, ...);
 
 bool LuaHook_Init();
 void LuaHook_Shutdown();
