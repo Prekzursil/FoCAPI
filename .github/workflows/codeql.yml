@@ -44,8 +44,8 @@ jobs:
           # packages/ is the NuGet restore target (packages.config) holding
           # vendored third-party libraries (minhook). Not repository code.
           config: |
-            paths_exclude:
-              - /packages
+            paths_ignore:
+              - packages/**
 
       - name: Build
         run: msbuild FoCAPI.sln /m /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
