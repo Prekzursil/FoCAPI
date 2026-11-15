@@ -69,10 +69,17 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros">
+    <!-- Location of the NuGet-restored minhook package. Default keeps
+         local builds working (packages.config restore into .\packages);
+         CI overrides it with a path outside the source root so the
+         vendored third-party headers are not part of the repository
+         source tree during static analysis. -->
+    <MinHookRoot Condition="'$(MinHookRoot)' == ''">packages\minhook.1.3.3</MinHookRoot>
+  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>packages\minhook.1.3.3\lib\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MinHookRoot)\lib\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -96,7 +103,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>packages\minhook.1.3.3\lib\native\lib\libMinHook-x86-v141-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(MinHookRoot)\lib\native\lib\libMinHook-x86-v141-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,7 +121,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>packages\minhook.1.3.3\lib\native\lib\libMinHook-x86-v141-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(MinHookRoot)\lib\native\lib\libMinHook-x86-v141-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -131,7 +138,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>powrprof.def</ModuleDefinitionFile>
-      <AdditionalDependencies>packages\minhook.1.3.3\lib\native\lib\libMinHook-x64-v141-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(MinHookRoot)\lib\native\lib\libMinHook-x64-v141-mdd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -150,7 +157,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>powrprof.def</ModuleDefinitionFile>
-      <AdditionalDependencies>packages\minhook.1.3.3\lib\native\lib\libMinHook-x64-v141-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(MinHookRoot)\lib\native\lib\libMinHook-x64-v141-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

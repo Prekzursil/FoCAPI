@@ -32,7 +32,7 @@ jobs:
 
       - name: Restore NuGet packages (packages.config)
         run: |
-          nuget restore FoCAPI.sln -PackagesDirectory packages -NonInteractive
+          nuget restore FoCAPI.sln -PackagesDirectory D:\a\nuget-packages -NonInteractive
         shell: cmd
 
       - name: Initialize CodeQL
@@ -48,7 +48,7 @@ jobs:
               - packages
 
       - name: Build
-        run: msbuild FoCAPI.sln /m /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
+        run: msbuild FoCAPI.sln /m /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /p:MinHookRoot=D:\a\nuget-packages\minhook.1.3.3
         shell: cmd
 
       - name: Perform CodeQL Analysis
