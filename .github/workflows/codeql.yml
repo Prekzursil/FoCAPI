@@ -44,7 +44,7 @@ jobs:
           # packages/ is the NuGet restore target (packages.config) holding
           # vendored third-party libraries (minhook). Not repository code.
           config: |
-            paths_ignore:
+            paths-ignore:
               - packages/**
 
       - name: Build
