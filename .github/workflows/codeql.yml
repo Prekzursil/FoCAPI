@@ -45,7 +45,7 @@ jobs:
           # vendored third-party libraries (minhook). Not repository code.
           config: |
             paths-ignore:
-              - packages/**
+              - packages
 
       - name: Build
         run: msbuild FoCAPI.sln /m /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143
